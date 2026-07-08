@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balap Karung IPA Ceria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #e0f2fe; }
+        .font-title { font-family: 'Fredoka One', cursive; }
+        
+        .track-lane { background-image: linear-gradient(90deg, #22c55e 2px, transparent 2px); background-size: 40px 100%; }
+        
+        .char { 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            font-size: 3rem;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .hop { animation: hop 0.5s ease-in-out; }
+        @keyframes hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+        
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <div id="startScreen" class="fixed inset-0 z-50 bg-sky-500 flex flex-col items-center justify-center text-white p-6 text-center">
+        <h1 class="font-title text-5xl md:text-7xl mb-4 drop-shadow-lg">BALAP KARUNG IPA</h1>
+        <p class="text-2xl mb-8">Ciri-Ciri Makhluk Hidup</p>
+        <button onclick="startGame()" class="bg-yellow-400 text-sky-900 font-bold py-6 px-16 rounded-full text-3xl shadow-2xl hover:scale-105 transition active:scale-95 border-b-8 border-yellow-600">MULAI BALAPAN!</button>
+    </div>
+
+    <!-- Header Scoreboard -->
+    <div class="max-w-6xl w-full mx-auto mb-8 bg-white/50 p-4 rounded-3xl border-4 border-white flex justify-between items-center shadow-lg">
+        <div class="text-center px-4">
+            <p class="text-sky-700 font-bold text-sm uppercase">Player 1 (Kamu)</p>
+            <div id="score1" class="text-4xl md:text-6xl font-title text-sky-600">0</div>
+        </div>
+        <div id="timer" class="text-4xl md:text-6xl font-title text-rose-500 bg-white px-8 py-2 rounded-full border-4 border-rose-200">15s</div>
+        <div class="text-center px-4">
+            <p class="text-rose-700 font-bold text-sm uppercase">Computer</p>
+            <div id="score2" class="text-4xl md:text-6xl font-title text-rose-600">0</div>
+        </div>
+    </div>
+
+    <main class="max-w-6xl w-full mx-auto flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- P1 Panel -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-xl border-4 border-sky-100 flex flex-col">
+            <h2 class="font-title text-2xl text-sky-600 mb-2">Player 1</h2>
+            <div id="q-panel" class="flex-grow">
+                <p id="question" class="font-bold text-gray-700 mb-4 min-h-[4rem]">Memuat soal...</p>
+                <div id="options" class="grid grid-cols-1 gap-2"></div>
+            </div>
+        </div>
+
+        <!-- Center Track -->
+        <div class="lg:col-span-2 bg-emerald-500 rounded-3xl p-4 relative border-4 border-green-600 shadow-inner overflow-hidden flex flex-col justify-between">
+            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/grass.png')]"></div>
+            
+            <div class="flex-grow flex flex-col justify-around relative">
+                <div class="h-1/2 border-b-2 border-dashed border-white/30 relative">
+                    <div id="char1" class="char left-0 bottom-[-15px]">🏃‍♂️</div>
+                </div>
+                <div class="h-1/2 relative">
+                    <div id="char2" class="char left-0 bottom-[-15px]">🤖</div>
+                </div>
+            </div>
+
+            <!-- Finish Line -->
+            <div class="absolute right-0 top-0 bottom-0 w-16 bg-white flex flex-col justify-between overflow-hidden">
+                <div class="grid grid-cols-2 h-full"><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div></div>
+            </div>
+        </div>
+
+        <!-- P2 Panel (Bot Stats) -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-xl border-4 border-rose-100">
+            <h2 class="font-title text-2xl text-rose-600 mb-2">Computer</h2>
+            <div class="bg-rose-50 p-6 rounded-2xl text-center">
+                <p class="text-rose-800 font-bold">Status Lomba</p>
+                <div class="text-6xl font-title text-rose-500 my-4">🤖</div>
+                <p class="text-sm text-gray-500">Komputer sedang berhitung...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const questions = [
+            { q: "Memerlukan makanan untuk memperoleh...?", a: "Warna", b: "Energi", c: "Bentuk", d: "Bau", ans: "Energi" },
+            { q: "Kemampuan menghasilkan keturunan disebut...?", a: "Bergerak", b: "Bernapas", c: "Berkembang biak", d: "Tumbuh", ans: "Berkembang biak" },
+            { q: "Berikut ciri makhluk hidup adalah...?", a: "Tidak berubah", b: "Tidak makan", c: "Bernapas", d: "Diam", ans: "Bernapas" },
+            { q: "Tumbuhan bergerak ke cahaya disebut...?", a: "Berkembang biak", b: "Peka rangsang", c: "Ekskresi", d: "Adaptasi", ans: "Peka rangsang" },
+            { q: "Proses mengeluarkan zat sisa disebut...?", a: "Respirasi", b: "Ekskresi", c: "Reproduksi", d: "Fotosintesis", ans: "Ekskresi" },
+            { q: "Alat gerak utama ikan adalah...?", a: "Kaki", b: "Sayap", c: "Sirip", d: "Ekor", ans: "Sirip" },
+            { q: "Makhluk hidup bernapas butuh...?", a: "Oksigen", b: "Besi", c: "Plastik", d: "Batu", ans: "Oksigen" },
+            { q: "Tujuan utama makhluk hidup makan...?", a: "Energi", b: "Bermain", c: "Tidur", d: "Lari", ans: "Energi" },
+            { q: "Contoh adaptasi makhluk hidup...?", a: "Mimikri", b: "Berlari", c: "Makan", d: "Minum", ans: "Mimikri" },
+            { q: "Hasil utama proses respirasi...?", a: "Oksigen", b: "Karbondioksida", c: "Glukosa", d: "Air", ans: "Karbondioksida" }
+        ];
+
+        let state = { p1: 0, p2: 0, qIdx: 0, timeLeft: 15 };
+        let timer;
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            loadQuestion();
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            state.timeLeft--;
+            document.getElementById('timer').innerText = state.timeLeft + 's';
+            if (state.timeLeft <= 0) handleAnswer(null);
+        }
+
+        function loadQuestion() {
+            const q = questions[state.qIdx];
+            if (!q) return finishGame();
+            
+            document.getElementById('question').innerText = `${state.qIdx + 1}. ${q.q}`;
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            
+            ['a', 'b', 'c', 'd'].forEach(k => {
+                const b = document.createElement('button');
+                b.className = 'w-full bg-sky-50 p-4 rounded-xl font-bold text-left border-2 border-sky-100 hover:border-sky-300 transition-all hover:bg-sky-100';
+                b.innerText = q[k];
+                b.onclick = () => handleAnswer(q[k]);
+                container.appendChild(b);
+            });
+        }
+
+        function handleAnswer(ans) {
+            clearInterval(timer);
+            
+            // Logic Komputer (Bot)
+            if (Math.random() > 0.4) {
+                state.p2++;
+                document.getElementById('score2').innerText = state.p2;
+                document.getElementById('char2').style.left = (state.p2 * 18) + '%';
+            }
+
+            // Logic User
+            if (ans === questions[state.qIdx].ans) {
+                state.p1++;
+                document.getElementById('score1').innerText = state.p1;
+                const char = document.getElementById('char1');
+                char.classList.add('hop');
+                char.style.left = (state.p1 * 18) + '%';
+                setTimeout(() => char.classList.remove('hop'), 500);
+            }
+
+            state.qIdx++;
+            state.timeLeft = 15;
+            
+            if (state.qIdx < questions.length && state.p1 < 5 && state.p2 < 5) {
+                document.getElementById('timer').innerText = '15s';
+                loadQuestion();
+                timer = setInterval(updateTimer, 1000);
+            } else {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            clearInterval(timer);
+            const msg = state.p1 >= 5 ? "KAMU PEMENANGNYA! 🎉" : (state.p2 >= 5 ? "KOMPUTER MENANG! 🤖" : "PERMAINAN SELESAI!");
+            alert(`Selesai!\nSkor Akhir: Kamu ${state.p1} | Komputer ${state.p2}\n${msg}`);
+            location.reload();
+        }
+    </script>
+</body>
+</html>
